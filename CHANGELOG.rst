@@ -102,7 +102,10 @@ Native multi agents support:
 
 [1.12.3]
 -----------------------
-
+- [FIXED] the warnings when building the documentation.
+- [FIXED] the deprecation warnings when importing grid2op 
+  with recent python versions (due to presence of math equation 
+  in some docstring)
 
 [1.12.2] - 2025-11-18
 ----------------------

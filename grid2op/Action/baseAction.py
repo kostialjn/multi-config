@@ -216,13 +216,13 @@ class BaseAction(GridObjects):
 
     _subs_impacted: :class:`numpy.ndarray`, dtype:bool
         This attributes is either not initialized (set to ``None``) or it tells, for each substation, if it is impacted
-        by the action (in this case :attr:`BaseAction._subs_impacted` \\[sub_id\\] is ``True``) or not
+        by the action (in this case :attr:`BaseAction._subs_impacted` [sub_id] is ``True``) or not
         (in this case :attr:`BaseAction._subs_impacted` [sub_id] is ``False``)
 
     _lines_impacted: :class:`numpy.ndarray`, dtype:bool
         This attributes is either not initialized (set to ``None``) or it tells, for each powerline, if it is impacted
-        by the action (in this case :attr:`BaseAction._lines_impacted` \\[line_id\\] is ``True``) or not
-        (in this case :attr:`BaseAction._subs_impacted` \\[line_id\\] is ``False``)
+        by the action (in this case :attr:`BaseAction._lines_impacted` [line_id] is ``True``) or not
+        (in this case :attr:`BaseAction._subs_impacted` [line_id] is ``False``)
 
     attr_list_vect: ``list``, static
         The authorized key that are processed by :func:`BaseAction.__call__` to modify the injections
@@ -1696,18 +1696,18 @@ class BaseAction(GridObjects):
         Test the equality of two actions.
 
         2 actions are said to be identical if they have the same impact on the powergrid. This is unrelated to their
-        respective class. For example, if an Action is of class :class:`Action` and doesn't act on the injection, it
+        respective class. For example, if an Action is of class :class:`BaseAction` and doesn't act on the injection, it
         can be equal to an Action of the derived class :class:`TopologyAction` (if the topological modifications are the
         same of course).
 
-        This implies that the attributes :attr:`Action.authorized_keys` is not checked in this method.
+        This implies that the attributes :attr:`BaseAction.authorized_keys` is not checked in this method.
 
         Note that if 2 actions don't act on the same powergrid, or on the same backend (eg number of loads, or
         generators are not the same in *self* and *other*, or they are not in the same order) then action will be
         declared as different.
 
         **Known issue** if two backends are different, but the description of the _grid are identical (ie all
-        n_gen, n_load, n_line, sub_info, dim_topo, all vectors \*_to_subid, and \*_pos_topo_vect are
+        n_gen, n_load, n_line, sub_info, dim_topo, all vectors \\*_to_subid, and \\*_pos_topo_vect are
         identical) then this method will not detect the backend are different, and the action could be declared
         as identical. For now, this is only a theoretical behavior: if everything is the same, then probably, up to
         the naming convention, then the power grids are identical too.
@@ -5594,9 +5594,9 @@ class BaseAction(GridObjects):
 
         Will:
 
-          * set to bus 1 the (unique) element for which \*_pos_topo_vect is 1
-          * disconnect the (unique) element for which \*_pos_topo_vect is 2
-          * set to bus 2 the (unique) element for which \*_pos_topo_vect is 3
+          * set to bus 1 the (unique) element for which \\*_pos_topo_vect is 1
+          * disconnect the (unique) element for which \\*_pos_topo_vect is 2
+          * set to bus 2 the (unique) element for which \\*_pos_topo_vect is 3
 
         You can use the documentation page :ref:`modeled-elements-module` for more information about which
         element correspond to what component of this vector.
@@ -5916,9 +5916,9 @@ class BaseAction(GridObjects):
 
         Will:
 
-          * change the bus of the (unique) element for which \*_pos_topo_vect is 1
-          * change the bus of (unique) element for which \*_pos_topo_vect is 2
-          * change the bus of (unique) element for which \*_pos_topo_vect is 3
+          * change the bus of the (unique) element for which \\*_pos_topo_vect is 1
+          * change the bus of (unique) element for which \\*_pos_topo_vect is 2
+          * change the bus of (unique) element for which \\*_pos_topo_vect is 3
 
         You can use the documentation page :ref:`modeled-elements-module` for more information about which
         element correspond to what component of this "vector".
@@ -7426,7 +7426,7 @@ class BaseAction(GridObjects):
                               margin: float=10.,
                               do_copy: bool=False,
                               _tol_equal : float=0.01) -> Tuple["BaseAction", np.ndarray, np.ndarray]:
-        """
+        r"""
         This function tries to limit the possibility to end up
         with a "game over" because actions on curtailment or storage units (see the "Notes" section
         for more information).
@@ -7449,25 +7449,26 @@ class BaseAction(GridObjects):
         
         At each time, the environment ensures that the following equations are met:
 
-        1) for each controlable generators $p^{(c)}_{min} <= p^{(c)}_t <= p^{(c)}_{max}$
-        2) for each controlable generators $-ramp_{min}^{(c)} <= p^{(c)}_t - p^{(c)}_{t-1} <= ramp_{max}^{(c)}$
+        1) for each controlable generators :math:`p^{(c)}_{min} <= p^{(c)}_t <= p^{(c)}_{max}`
+        2) for each controlable generators :math:`-ramp_{min}^{(c)} <= p^{(c)}_t - p^{(c)}_{t-1} <= ramp_{max}^{(c)}`
         3) at each step the sum of MW curtailed and the total contribution of storage units 
            is absorbed by the controlable generators so that the total amount of power injected 
            at this step does not change: 
-           $\sum_{\text{all generators } g} p^{(g, scenario)}_t = \sum_{\text{controlable generators } c}  p^{(c)}_t + \sum_{\text{storage unit } s} p^{s}_t + \sum_{\text{renewable generator} r} p^{(r)}_t$
-           where $p^{(g)}_t$ denotes the productions of generator $g$ in the input data "scenario" 
+           :math:`\sum_{\text{all generators } g} p^{(g, scenario)}_t = \sum_{\text{controlable generators } c}  p^{(c)}_t + \sum_{\text{storage unit } s} p^{s}_t + \sum_{\text{renewable generator} r} p^{(r)}_t`
+           where :math:`p^{(g)}_t` denotes the productions of generator $g$ in the input data "scenario" 
            (*ie* "in the current episode", "before any modification", "decided by the market / central authority").
 
-        In the above equations, `\sum_{\text{storage unit } s} p^{s}_t` are controled by the action (thanks to the storage units)
-        and `\sum_{\text{renewable generator} r} p^{(r)}_t` are controlled by the curtailment.
+        In the above equations: 
+        ..:math:`\sum_{\text{storage unit } s} p^{s}_t` are controled by the action (thanks to the storage units)
+        and :math:`\sum_{\text{renewable generator} r} p^{(r)}_t` are controlled by the curtailment.
         
-        `\sum_{\text{all generators } g} p^{(g, scenario)}_t` are input data from the environment (that cannot be modify).
+        :math:`\sum_{\text{all generators } g} p^{(g, scenario)}_t` are input data from the environment (that cannot be modify).
         
-        The exact value of each `p^{(c)}_t` (for each controlable generator) is computed by an internal routine of the
+        The exact value of each :math:`p^{(c)}_t` (for each controlable generator) is computed by an internal routine of the
         environment. 
         
-        The constraint comes from the fact that `\sum_{\text{controlable generators } c}  p^{(c)}_t` is determined by the last equation
-        above but at the same time the values of each `p^{(c)}_t` (for each controllable generator) is heavily constrained
+        The constraint comes from the fact that :math:`\sum_{\text{controlable generators } c}  p^{(c)}_t` is determined by the last equation
+        above but at the same time the values of each :math:`p^{(c)}_t` (for each controllable generator) is heavily constrained
         by equations 1) and 2).
 
         .. note::

@@ -35,14 +35,15 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
-    'sphinx.ext.imgmath',
+    'sphinx.ext.imgmath',  # for math in documentation
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     # 'builder',
     'sphinx.ext.extlinks',
     'sphinx.ext.napoleon',
     'sphinxcontrib_trio',
-     "sphinx_rtd_theme",
+    "sphinx_rtd_theme",
+    # 'sphinx.ext.mathjax',
     # toc of modules
     'autodocsumm',
     # 'sphinx.ext.autosectionlabel',

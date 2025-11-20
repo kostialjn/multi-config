@@ -171,10 +171,6 @@ class BaseEnv(GridObjects, RandomObject, ABC):
             
     Attributes
     ----------
-
-    parameters: :class:`grid2op.Parameters.Parameters`
-        The parameters of the game (to expose more control on what is being simulated)
-
     with_forecast: ``bool``
         Whether the chronics allow to have some kind of "forecast". See :func:`BaseEnv.activate_forceast`
         for more information
@@ -318,7 +314,9 @@ class BaseEnv(GridObjects, RandomObject, ABC):
     kwargs_observation: ``dict``
         TODO
 
-    # TODO add the units (eg MW, MWh, MW/time step,etc.) in the redispatching related attributes
+    warnings
+    --------
+    TODO add the units (eg MW, MWh, MW/time step,etc.) in the redispatching related attributes
     """
 
     ALARM_FILE_NAME = "alerts_info.json"

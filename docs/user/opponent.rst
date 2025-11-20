@@ -41,11 +41,12 @@ First, a grid is said to be "in security" if no threshold are violate for any eq
 In the context of grid2op, this most often means that all powerlines have a flow under a certain
 threshold (refer to as "thermal limit" in grid2op).
 
-``̀`
-A grid is N-1 safe, if, for any "contingency" (*eg* the disconnection a powerline) from 
-a given list (in general this list is "all the lines / transformers on the grid"), the grid would
-still be "in security" (define in the above paragraph) after this contingency occurred.
-``̀`
+.. important::
+
+  A grid is N-1 safe, if, for any "contingency" (*eg* the disconnection a powerline) from 
+  a given list (in general this list is "all the lines / transformers on the grid"), the grid would
+  still be "in security" (define in the above paragraph) after this contingency occurred.
+
 
 N-1 with corrective actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -59,11 +60,11 @@ contingency to avoid the grid to go out of security.
 
 This would give the following definition of N-1 security:
 
-``̀`
-A grid is N-1 secure (with corrective action), if an only if, for a any contingency (among a given list),
-it is possible to find (at least) a corrective action (understand: an action that can be quickly implemented after
-the contingency, including the "I do nothing action") that would bring the grid back to security.
-``̀`
+.. important::
+  A grid is N-1 secure (with corrective action), if an only if, for a any contingency (among a given list),
+  it is possible to find (at least) a corrective action (understand: an action that can be quickly implemented after
+  the contingency, including the "I do nothing action") that would bring the grid back to security.
+  
 
 .. note::
   If a grid is N-1 secure (as described in the above paragraph), it will be "N-1 secure (with corrective action)".
@@ -78,11 +79,11 @@ or a few days).
 
 The N-1 criterion can then be "extended" to include the time dependance. The natural definition would be:
 
-``̀`
-A grid is N-1 scure accross the time interval [beginning, end] if (and only if), for any contingency 
-(among a given list) occurring during this time interval, there exists a list of corrective actions that
-can ensure the grid remains in security at any time until the end of this interval".
-``̀`
+.. important::
+  A grid is N-1 scure accross the time interval [beginning, end] if (and only if), for any contingency 
+  (among a given list) occurring during this time interval, there exists a list of corrective actions that
+  can ensure the grid remains in security at any time until the end of this interval".
+  
 
 .. note::
   If the grid state is not modified by any action, assessing whether or not the grid is "N-1 secure on a given time interval"

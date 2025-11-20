@@ -216,13 +216,13 @@ class BaseAction(GridObjects):
 
     _subs_impacted: :class:`numpy.ndarray`, dtype:bool
         This attributes is either not initialized (set to ``None``) or it tells, for each substation, if it is impacted
-        by the action (in this case :attr:`BaseAction._subs_impacted`\[sub_id\] is ``True``) or not
-        (in this case :attr:`BaseAction._subs_impacted`\[sub_id\] is ``False``)
+        by the action (in this case :attr:`BaseAction._subs_impacted` \\[sub_id\\] is ``True``) or not
+        (in this case :attr:`BaseAction._subs_impacted` [sub_id] is ``False``)
 
     _lines_impacted: :class:`numpy.ndarray`, dtype:bool
         This attributes is either not initialized (set to ``None``) or it tells, for each powerline, if it is impacted
-        by the action (in this case :attr:`BaseAction._lines_impacted`\[line_id\] is ``True``) or not
-        (in this case :attr:`BaseAction._subs_impacted`\[line_id\] is ``False``)
+        by the action (in this case :attr:`BaseAction._lines_impacted` \\[line_id\\] is ``True``) or not
+        (in this case :attr:`BaseAction._subs_impacted` \\[line_id\\] is ``False``)
 
     attr_list_vect: ``list``, static
         The authorized key that are processed by :func:`BaseAction.__call__` to modify the injections
@@ -630,6 +630,7 @@ class BaseAction(GridObjects):
 
 
         #: .. versionadded:: 1.12.1
+        #:
         #: allows the agent to perform an action
         #: that depends on the backend type used.
         #: See the doc for more information.
@@ -652,7 +653,8 @@ class BaseAction(GridObjects):
         self._modif_detach_storage = False
         
         #: .. versionadded:: 1.12.1
-        #: cache not to recompute the `is_ambiguous` for the same action
+        #: 
+        #: cache not to recompute the :attr:`BaseAction.is_ambiguous` for the same action
         self._cached_is_not_ambiguous = True
 
     # init the private argument when needed
@@ -1618,10 +1620,15 @@ class BaseAction(GridObjects):
     def _aux_vect_different(self, other, modif_flag_nm, vect_nm):
         """Implement something similar to :
 
-        ((self._modif_set_status != other._modif_set_status) or
-          not np.all(self._set_line_status == other._set_line_status)
-        )
+        .. code-block:: python
+        
+            ((self._modif_set_status != other._modif_set_status) or
+                not np.all(self._set_line_status == other._set_line_status)
+            )
+            
         But for different flag (*eg* `_modif_set_status`) and vector (*eg* `_private_set_line_status`)
+        to avoid duplicating the code.
+        
         """
         if getattr(self, modif_flag_nm) != getattr(other, modif_flag_nm):
             # they are different
@@ -1908,7 +1915,7 @@ class BaseAction(GridObjects):
             then the argument `powerline_status` might be ignored in future calls where `_read_from_cache` is
             ``True``
 
-            .. newinversion:: 1.11.0
+            .. versionadded:: 1.11.0
 
             .. warning::
                 Use with extra care, it's private API.
@@ -1925,7 +1932,7 @@ class BaseAction(GridObjects):
             By default it's ``True``, but by default no cache is not set up. This means that by default
             the argument `powerline_status` is in fact used.
 
-            .. newinversion:: 1.11.0
+            .. versionadded:: 1.11.0
 
         Returns
         -------

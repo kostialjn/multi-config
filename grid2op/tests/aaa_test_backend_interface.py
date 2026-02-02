@@ -724,10 +724,10 @@ class AAATestBackendAPI(MakeBackend):
             assert np.allclose(diff_v_bus, 0., atol=3 * self.tol_one), "there are some discrepency in the backend after a powerflow: some nodes have two different voltages. Check the accessor for voltage in all the `***_info()` (*eg* `loads_info()`)"
         
         p_after_or, q_after_or, v_after_or, a_after_or = backend.lines_or_info()
-        assert np.allclose(p_after_or, p_or), f"The p_or flow changed while the topology action is supposed to have no impact, check the `apply_action` for topology"
-        assert np.allclose(q_after_or, q_or), f"The q_or flow changed while the topology action is supposed to do nothing, check the `apply_action` for topology"
-        assert np.allclose(v_after_or, v_or), f"The v_or changed while the topology action is supposed to do nothing, check the `apply_action` for topology"
-        assert np.allclose(a_after_or, a_or), f"The a_or flow changed while the topology action is supposed to do nothing, check the `apply_action` for topology"
+        assert np.allclose(p_after_or, p_or), "The p_or flow changed while the topology action is supposed to have no impact, check the `apply_action` for topology"
+        assert np.allclose(q_after_or, q_or), "The q_or flow changed while the topology action is supposed to do nothing, check the `apply_action` for topology"
+        assert np.allclose(v_after_or, v_or), "The v_or changed while the topology action is supposed to do nothing, check the `apply_action` for topology"
+        assert np.allclose(a_after_or, a_or), "The a_or flow changed while the topology action is supposed to do nothing, check the `apply_action` for topology"
         
         sub_id = 1
         # mix of bus 1 and 2 on substation 1
@@ -750,10 +750,10 @@ class AAATestBackendAPI(MakeBackend):
             assert np.allclose(diff_v_bus, 0., atol=3 * self.tol_one), "there are some discrepency in the backend after a powerflow: some nodes have two different voltages. Check the accessor for voltage in all the `***_info()` (*eg* `loads_info()`)"
         
         p_after_or, q_after_or, v_after_or, a_after_or = backend.lines_or_info()
-        assert not np.allclose(p_after_or, p_or), f"The p_or flow doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
-        assert not np.allclose(q_after_or, q_or), f"The q_or flow doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
-        assert not np.allclose(v_after_or, v_or), f"The v_or doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
-        assert not np.allclose(a_after_or, a_or), f"The a_or flow doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
+        assert not np.allclose(p_after_or, p_or), "The p_or flow doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
+        assert not np.allclose(q_after_or, q_or), "The q_or flow doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
+        assert not np.allclose(v_after_or, v_or), "The v_or doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
+        assert not np.allclose(a_after_or, a_or), "The a_or flow doesn't change while the topology action is supposed to have a real impact, check the `apply_action` for topology"
     
     def test_15_reset(self):
         """Tests that when a backend is reset, it is indeed reset in the original state

@@ -2237,9 +2237,9 @@ class BaseTestShuntAction(MakeBackend):
             env_change_q.action_space({"shunt": {"set_bus": [(0, 2)]}})
         )
         assert obs_co_bus2_sh_alone._shunt_bus == -1
-        assert obs_co_bus2_sh_alone._shunt_v == 0.
-        assert obs_co_bus2_sh_alone._shunt_p == 0
-        assert obs_co_bus2_sh_alone._shunt_q == 0
+        assert np.abs(obs_co_bus2_sh_alone._shunt_v - 0.) <= 1e-6
+        assert np.abs(obs_co_bus2_sh_alone._shunt_p - 0.) <= 1e-6
+        assert np.abs(obs_co_bus2_sh_alone._shunt_q - 0.) <= 1e-6
         
         # note that above the backend can diverge (shunt is alone on its bus !)
         # on pp it does not ... but it probably should
@@ -2256,8 +2256,8 @@ class BaseTestShuntAction(MakeBackend):
         assert np.allclose(obs_co_bus2_sh_notalone.v_or[10], 23.15359878540039)
         assert obs_co_bus2_sh_notalone._shunt_bus == 2
         assert np.allclose(obs_co_bus2_sh_notalone._shunt_v, 23.15359878540039)
-        assert obs_co_bus2_sh_notalone._shunt_p == 0
-        assert obs_co_bus2_sh_notalone._shunt_q == -25.464233
+        assert np.abs(obs_co_bus2_sh_notalone._shunt_p) <= 1e-6, f"{obs_co_bus2_sh_notalone._shunt_p} vs 0."
+        assert np.abs(obs_co_bus2_sh_notalone._shunt_q - -25.464233) <= 1e-6
 
 
 class BaseTestResetEqualsLoadGrid(MakeBackend):

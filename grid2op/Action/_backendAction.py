@@ -245,7 +245,7 @@ class ValueStore:
 
     def __iter__(self):
         return self
-
+        
     def __next__(self):
         res = None
         while self.last_index < self.values.shape[0]:

@@ -106,6 +106,10 @@ Native multi agents support:
 - [FIXED] the deprecation warnings when importing grid2op 
   with recent python versions (due to presence of math equation 
   in some docstring)
+- [FIXED] issues when loading a grid with disconnected elements: grid2op
+  did not know on which bus to reconnect them when only the "reconnect" bus was given.
+- [IMPROVED] code for AAA backend tests
+
 
 [1.12.2] - 2025-11-18
 ----------------------
@@ -1176,8 +1180,8 @@ Native multi agents support:
 - [ADDED]: a new kind of opponent that is able to attack at "more random" times with "more random" duration.
   See the `GeometricOpponent`.
 - [IMPROVED]: on windows at least, grid2op does not work with gym < 0.17.2 Checks are performed in order to make sure
-  the installed open ai gym package meets this requirement (see issue
-  `Issue#185 <https://github.com/Grid2Op/grid2op/issues/185>`_ )
+  the installed open ai gym package meets this requirement 
+  (see issue `Issue#185 <https://github.com/Grid2Op/grid2op/issues/185>`_ )
 - [IMPROVED] the seed of openAI gym for composed action space (see issue `https://github.com/openai/gym/issues/2166`):
   in waiting for an official fix, grid2op will use the solution proposed there
   https://github.com/openai/gym/issues/2166#issuecomment-803984619

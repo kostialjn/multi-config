@@ -211,3 +211,24 @@ class _EnvPreviousState(object):
         arr1[el_co] = 1. * arr1_new[el_co]
         if arr2 is not None:
             arr2[el_co] = 1. * arr2_new[el_co]
+
+    
+    def fix_topo_bus(self):
+        """
+        This function fixes the "previous connection sate" to make sure they are all valid buses for set_bus.
+        
+        There might be issues for example if the original grid contained disconnected elements, in that case they would
+        be assigned to 0 which is not possible.
+        
+        """
+        if (self._topo_vect != 1).all():
+            # all bus are >= ok
+            return
+        
+        # if detailed topo, not done ATM  # TODO
+        if hasattr(self, "_switch_state") and self._switch_state is not None:
+            raise RuntimeError()
+        
+        self._topo_vect[self._topo_vect <= -2] = -1
+        self._topo_vect[self._topo_vect == 0] = -1
+        self._topo_vect[self._topo_vect >= int(self._grid_obj_cls["n_busbar_per_sub"])] = 1

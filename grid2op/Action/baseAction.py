@@ -7954,3 +7954,46 @@ class BaseAction(GridObjects):
         `detach_load`, `detach_gen` or `detach_storage`
         """
         return self._modif_detach_gen or self._modif_detach_load or self._modif_detach_storage
+    
+    def check_reconnection_valid(self, current_line_status, last_valid_topo_vect):
+        # check lines can be reconnected safely if no bus is provided
+        if not (self._modif_set_status or self._modif_change_status):
+            return None
+        cls = type(self)
+        
+        # line reconnected
+        reco = ((self._set_line_status == 1) | 
+                (self._switch_line_status & (~current_line_status)))
+        
+        # # line reconnected without topology
+        # if self._modif_set_bus:
+        #     reco_without_bus = reco.copy()
+        #     reco_without_bus[self._set_topo_vect[cls.line_or_pos_topo_vect] >= 1] = False
+        #     reco_without_bus[self._set_topo_vect[cls.line_ex_pos_topo_vect] >= 1] = False
+        # else:
+        #     reco_without_bus = reco
+            
+        # check that the "previous bus" is known for these lines
+        vect_or = cls.line_or_pos_topo_vect[reco]
+        vect_ex = cls.line_ex_pos_topo_vect[reco]
+        if not self._modif_set_bus:
+            # reconnection without proper bus specified in the action
+            # previous bus should be registered at both ends
+            issue_or = last_valid_topo_vect[vect_or] < 1 
+            issue_ex = last_valid_topo_vect[vect_ex] < 1 
+        else:
+            # check that the user specified the bus on each side
+            issue_or = (last_valid_topo_vect[vect_or] < 1) & (self._set_topo_vect[vect_or] < 1)
+            issue_ex = (last_valid_topo_vect[vect_ex] < 1) & (self._set_topo_vect[vect_ex] < 1)
+        if issue_or.any():
+            return IllegalAction(f"Attempt to reconnect line "
+                                 f"{cls.name_line[issue_or.nonzero()[0]]} "
+                                 f"with id(s) {issue_or.nonzero()[0]} "
+                                 f"(origin side) with no known previous nodes. In this case, you need to specify "
+                                 f"explicitly the node / bus to which you want to reconnect it.")
+        if issue_ex.any():
+            return IllegalAction(f"Attempt to reconnect line "
+                                 f"{cls.name_line[issue_ex.nonzero()[0]]} "
+                                 f"with id(s) {issue_ex.nonzero()[0]} "
+                                 f"(extremity side) with no known previous nodes. In this case, you need to specify "
+                                 f"explicitly the node / bus to which you want to reconnect it.")

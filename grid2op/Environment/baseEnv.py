@@ -1527,14 +1527,17 @@ class BaseEnv(GridObjects, RandomObject, ABC):
             # environment initialized from an observation, eg forecast_env
             # update the backend
             self._backend_action = self.backend.update_from_obs(self._init_obs)
-            self._backend_action.last_topo_registered.values[:] = self._init_obs._prev_conn._topo_vect
+            # self._backend_action.last_topo_registered.values[:] = self._init_obs._prev_conn._topo_vect
             self._previous_conn_state.update_from_other(self._init_obs._prev_conn)
-        
+
+        # "fix" topology in case of disconnected element in grid file
         self._previous_conn_state.fix_topo_bus()
         self._cst_prev_state_at_init = self._previous_conn_state.copy()
         self._cst_prev_state_at_init.prevent_modification()
+        
         # update backend_action with the "last known" state
         self._backend_action.last_topo_registered.values[:] = self._previous_conn_state._topo_vect
+        self._backend_action.current_topo.values[:] = self._previous_conn_state._topo_vect
         self._backend_action._needs_active_bus = self.backend._needs_active_bus
         
     def _update_parameters(self):
@@ -3412,12 +3415,12 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         self._delta_gen_p[gen_detached_user] = 0.  # when the backend disconnect it it should not be set to 0.
         self._prev_gen_p[:] = self._gen_activeprod_t
         
+        # update the previous state
+        self._previous_conn_state.update_from_backend(self.backend)
+        
         # finally, build the observation (it's a different one at each step, we cannot reuse the same one)
         # THIS SHOULD BE DONE AFTER EVERYTHING IS INITIALIZED !
         self.current_obs = self.get_obs(_do_copy=False)
-        
-        # update the previous state
-        self._previous_conn_state.update_from_backend(self.backend)
         
         self._time_extract_obs += time.perf_counter() - beg_res
         return None
@@ -3629,7 +3632,6 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         # I did something after calling "env.seed()" which is
         # somehow "env.step()" or "env.reset()"
         self._has_just_been_seeded =  False  
-        
         cls = type(self)
         has_error = True
         is_done = False
@@ -3701,6 +3703,11 @@ class BaseEnv(GridObjects, RandomObject, ABC):
                     )
                     action, init_disp, action_storage_power = self._aux_step_reset_action()
                     is_ambiguous = True 
+            reco_valid = action.check_reconnection_valid(self._line_status, self._previous_conn_state._topo_vect)
+            if reco_valid is not None:
+                action, init_disp, action_storage_power = self._aux_step_reset_action()
+                is_illegal = True
+                except_.append(reco_valid)
                 
             # speed optimization: during all the "env.step" the "topological impact"
             # of an action is called multiple times, I cache the results
@@ -3741,7 +3748,7 @@ class BaseEnv(GridObjects, RandomObject, ABC):
                 False  # because it absorbs all redispatching actions
             )
             new_p = self._get_new_prod_setpoint(action)
-            new_p_th = 1.0 * new_p
+            new_p_th = new_p.copy()
             self._feed_data_for_detachment(new_p_th)  # should be called before _axu_apply_detachment
             
             # storage unit

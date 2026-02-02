@@ -215,20 +215,31 @@ class _EnvPreviousState(object):
     
     def fix_topo_bus(self):
         """
-        This function fixes the "previous connection sate" to make sure they are all valid buses for set_bus.
+        INTERNAL
+
+        .. warning:: /!\\\\ Internal, do not use unless you know what you are doing /!\\\\
+            
+            
+        This function fixes the "previous connection sate" to make sure they are all valid buses for set_bus. 
+        
+        It is called by "env.reset"
         
         There might be issues for example if the original grid contained disconnected elements, in that case they would
         be assigned to 0 which is not possible.
         
         """
-        if (self._topo_vect != 1).all():
-            # all bus are >= ok
+        if not ((self._topo_vect <= -2) |
+                (self._topo_vect == 0) | 
+                (self._topo_vect > int(self._grid_obj_cls["n_busbar_per_sub"]))
+               ).any():
+            # all bus are ok
+            # nothing to do
             return
         
         # if detailed topo, not done ATM  # TODO
         if hasattr(self, "_switch_state") and self._switch_state is not None:
-            raise RuntimeError()
+            raise RuntimeError("Disconnected element in the grid in the presence of switches. This is not handled at the moment.")
         
         self._topo_vect[self._topo_vect <= -2] = -1
         self._topo_vect[self._topo_vect == 0] = -1
-        self._topo_vect[self._topo_vect >= int(self._grid_obj_cls["n_busbar_per_sub"])] = 1
+        self._topo_vect[self._topo_vect > int(self._grid_obj_cls["n_busbar_per_sub"])] = 1

@@ -370,7 +370,7 @@ class PandaPowerBackend(Backend):
             warnings.filterwarnings("ignore", category=FutureWarning)
             self._grid = pp.from_json(full_path)
         self._check_for_non_modeled_elements()
-            
+        
         # add the slack bus that is often not modeled as a generator, but i need it for this backend to work
         bus_gen_added = None
         i_ref = None
@@ -452,13 +452,17 @@ class PandaPowerBackend(Backend):
         self.__nb_powerline = self._grid.line.shape[0]
         self._init_bus_load = self.cst_1 * self._grid.load["bus"].values
         self._init_bus_gen = self.cst_1 * self._grid.gen["bus"].values
-        self._init_bus_lor = self.cst_1 * self._grid.line["from_bus"].values
-        self._init_bus_lex = self.cst_1 * self._grid.line["to_bus"].values
-
+        
+        bus_lor = self.cst_1 * self._grid.line["from_bus"].values
+        # bus_lor[~self._grid.line["in_service"].values] = -1
+        bus_lex = self.cst_1 * self._grid.line["to_bus"].values
+        # bus_lex[~self._grid.line["in_service"].values] = -1
         t_for = self.cst_1 * self._grid.trafo["hv_bus"].values
+        # t_for[~self._grid.trafo["in_service"].values] = -1
         t_fex = self.cst_1 * self._grid.trafo["lv_bus"].values
-        self._init_bus_lor = np.concatenate((self._init_bus_lor, t_for)).astype(dt_int)
-        self._init_bus_lex = np.concatenate((self._init_bus_lex, t_fex)).astype(dt_int)
+        # t_fex[~self._grid.trafo["in_service"].values] = -1
+        self._init_bus_lor = np.concatenate((bus_lor, t_for)).astype(dt_int)
+        self._init_bus_lex = np.concatenate((bus_lex, t_fex)).astype(dt_int)
 
         self._grid["ext_grid"]["va_degree"] = 0.0
 
@@ -844,6 +848,7 @@ class PandaPowerBackend(Backend):
         self.gen_theta = np.full(self.n_gen, fill_value=np.nan, dtype=dt_float)
         self.storage_theta = np.full(self.n_storage, fill_value=np.nan, dtype=dt_float)
 
+        self._get_line_status()
         self._get_topo_vect()
         self.tol = 1e-5  # this is NOT the pandapower tolerance !!!! this is used to check if a storage unit
         # produce / absorbs anything
@@ -866,6 +871,7 @@ class PandaPowerBackend(Backend):
         self._topo_vect.flags.writeable = True
         self._topo_vect.resize(cls.dim_topo, refcheck=False)
         self._topo_vect.flags.writeable = False
+        self._get_line_status()
         self._get_topo_vect()
 
     def _convert_id_topo(self, id_big_topo):
@@ -966,12 +972,13 @@ class PandaPowerBackend(Backend):
         # i made at least a real change, so i implement it in the backend
         for id_el, new_bus in topo__:
             id_el_backend, id_topo, type_obj = self._big_topo_to_backend[id_el]
-
             if type_obj is not None:
                 # storage unit are handled elsewhere
                 self._type_to_bus_set[type_obj](new_bus, id_el_backend, id_topo)
-        
-        self._topo_vect.flags.writeable = False
+                
+        # self._topo_vect.flags.writeable = True
+        # self._topo_vect[topo__.changed] = topo__.values[topo__.changed]
+        # self._topo_vect.flags.writeable = False
 
     def _apply_load_bus(self, new_bus, id_el_backend, id_topo):
         new_bus_backend = type(self).local_bus_to_global_int(

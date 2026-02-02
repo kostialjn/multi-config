@@ -991,11 +991,16 @@ class Environment(BaseEnv):
         self.nb_time_step = -1  # to have init obs at step 1 (and to prevent 'setting to proper state' "action" to be illegal)
         
         if self._init_obs is not None:
-            # update the backend
+            # update the backend from the observation
             self._backend_action = self.backend.update_from_obs(self._init_obs)
-            self._backend_action.last_topo_registered.values[:] = self._init_obs._prev_conn._topo_vect
+            topo_state_to_use = self._init_obs._prev_conn
         else:
             self._backend_action = self._backend_action_class()
+            topo_state_to_use = self._previous_conn_state
+            
+        # synch the backend action with the init topology
+        self._backend_action.last_topo_registered.values[:] = topo_state_to_use._topo_vect
+        self._backend_action.current_topo.values[:] = topo_state_to_use._topo_vect
         self._backend_action._needs_active_bus = self._needs_active_bus
         
         if self._init_obs is not None:

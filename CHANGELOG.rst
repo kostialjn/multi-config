@@ -109,7 +109,7 @@ Native multi agents support:
 - [FIXED] issues when loading a grid with disconnected elements: grid2op
   did not know on which bus to reconnect them when only the "reconnect" bus was given.
 - [IMPROVED] code for AAA backend tests
-
+- [IMPROVED] doc when loading grid with disconnected elements
 
 [1.12.2] - 2025-11-18
 ----------------------

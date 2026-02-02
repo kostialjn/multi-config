@@ -910,7 +910,7 @@ class _BackendAction(GridObjects):
         # V Force disconnected status
         # of disconnected powerlines extremities
         self._status_or[:], self._status_ex[:] = self.current_topo.get_line_status(
-            self.line_or_pos_topo_vect, self.line_ex_pos_topo_vect
+            cls.line_or_pos_topo_vect, cls.line_ex_pos_topo_vect
         )
 
         # At least one disconnected extremity

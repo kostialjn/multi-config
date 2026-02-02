@@ -453,6 +453,17 @@ action                                         original status   final status   
 
 \* means that this bus is affected: if it was on bus 1 it moves on bus 2 and vice versa.
 
+.. danger::
+  In the general case, the "last state" (denoted `PREVIOUS_OR` or `PREVIOUS_EX`) is known. But it is not always the case.
+
+  It can happen that the original grid file (the one loaded by grid2op backend to create the environment) has 
+  disconnected elements. 
+
+  In this case, it is NOT possible to reconnect said elements without provided explicitely the buses at both sides. Any
+  attempt to do so will lead to a "illegal" action and will be replaced by "do nohting" in env.step (thus discarding all other
+  "parts" of the action).
+
+  
 Note on random actions
 ------------------------
 Sampling a "non ambiguous" legal action is a difficult task.

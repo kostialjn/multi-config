@@ -943,6 +943,13 @@ class _BackendAction(GridObjects):
         sto_changed = self.current_topo.changed[cls.storage_pos_topo_vect]
         sto_bus = self.current_topo.values[cls.storage_pos_topo_vect]
         self.storage_power.force_unchanged(sto_changed, sto_bus)
+    
+    def invalidate_cache(self):
+        """INTERNAL
+        
+        Used when environment is loaded from an observation (eg ForecastEnv)
+        """
+        self._is_cached = False
         
     def __call__(self) -> Tuple[np.ndarray,
                                 Tuple[ValueStore, ValueStore, ValueStore, ValueStore, ValueStore],

@@ -108,6 +108,8 @@ Native multi agents support:
   in some docstring)
 - [FIXED] issues when loading a grid with disconnected elements: grid2op
   did not know on which bus to reconnect them when only the "reconnect" bus was given.
+- [FIXED] an issue leading to wrong setpoint values for shunt_p and shunt_q in the previous
+  stored state (EnvPreviousState)
 - [IMPROVED] code for AAA backend tests
 - [IMPROVED] doc when loading grid with disconnected elements
 

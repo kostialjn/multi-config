@@ -5060,13 +5060,14 @@ class BaseObservation(GridObjects):
         backend._is_loaded = True
         nb_highres_called = self._obs_env.highres_sim_counter.nb_highres_called
         
-        res = ForecastEnv(**self._ptr_kwargs_env,
-                          backend=backend,
-                          chronics_handler=ch,
-                          parameters=self._obs_env.parameters,
-                          _init_obs=self,
-                          highres_sim_counter=self._obs_env.highres_sim_counter
-                          )
+        res = ForecastEnv(
+            **self._ptr_kwargs_env,
+            backend=backend,
+            chronics_handler=ch,
+            parameters=self._obs_env.parameters,
+            _init_obs=self,
+            highres_sim_counter=self._obs_env.highres_sim_counter
+            )
         # it does one simulation when it inits it (calling env.step) so I remove 1 here
         res.highres_sim_counter._HighResSimCounter__nb_highres_called = nb_highres_called
         return res

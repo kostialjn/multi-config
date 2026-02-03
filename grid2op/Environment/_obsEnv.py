@@ -569,3 +569,13 @@ class _ObsEnv(BaseEnv):
             if hasattr(self, attr_nm):
                 delattr(self, attr_nm)
             setattr(self, attr_nm, None)
+            
+    def synch_backend_action(self, real_env_backend_action: grid2op.Action._BackendAction) -> None:
+        """Synchronize the backend action of the (simulated) environment with the backend action of the real environment.
+        
+        This is called by the "simulated environment" (forecast env) and allow to remember "past state" of the grid
+        """
+        self._backend_action.last_topo_registered.values[:] = real_env_backend_action.last_topo_registered.values
+        self._backend_action.current_topo.values[:] = real_env_backend_action.current_topo.values
+        self._backend_action.invalidate_cache()
+        self._backend_action.all_changed()

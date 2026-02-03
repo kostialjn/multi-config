@@ -275,6 +275,7 @@ class PreviousStateTester(unittest.TestCase):
         assert obs.topo_vect[pos_ex_tv] == -1
         assert self.env._previous_conn_state._topo_vect[pos_or_tv] == 1
         assert self.env._previous_conn_state._topo_vect[pos_ex_tv] == 1
+        
         # reconnect it (forecast env)
         for_env = obs.get_forecast_env()
         for_obs = for_env.reset()
@@ -298,6 +299,7 @@ class PreviousStateTester(unittest.TestCase):
         assert obs.topo_vect[pos_ex_tv] == -1
         assert self.env._previous_conn_state._topo_vect[pos_or_tv] == 2
         assert self.env._previous_conn_state._topo_vect[pos_ex_tv] == 1
+        
         # reconnect it (forecast env)
         for_env = obs.get_forecast_env()
         assert for_env._cst_prev_state_at_init._topo_vect[pos_or_tv] == 2, f"{for_env._cst_prev_state_at_init._topo_vect[pos_or_tv]} vs 2"
@@ -364,30 +366,29 @@ class PreviousStateTester(unittest.TestCase):
         assert env._cst_prev_state_at_init is init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 2 steps")
-        
         _ = env.reset()
-        assert env._cst_prev_state_at_init is init_cst_prev_state
+        assert env._cst_prev_state_at_init == init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 1 reset")
         _ = env.step(env.action_space())
-        assert env._cst_prev_state_at_init is init_cst_prev_state
+        assert env._cst_prev_state_at_init == init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 1 reset 1 step")
         _ = env.step(env.action_space({'set_line_status': [(0, -1)]}))
-        assert env._cst_prev_state_at_init is init_cst_prev_state
+        assert env._cst_prev_state_at_init == init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 1 reset 2 steps")
         
         _ = env.reset()
-        assert env._cst_prev_state_at_init is init_cst_prev_state
+        assert env._cst_prev_state_at_init == init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 2 reset")
         _ = env.step(env.action_space())
-        assert env._cst_prev_state_at_init is init_cst_prev_state
+        assert env._cst_prev_state_at_init == init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 2 reset 1 step")
         _ = env.step(env.action_space({'set_line_status': [(0, -1)]}))
-        assert env._cst_prev_state_at_init is init_cst_prev_state
+        assert env._cst_prev_state_at_init == init_cst_prev_state
         assert not env._cst_prev_state_at_init._can_modif
         self._aux_test_matches_obs(init_cst_prev_state_cpy, env._cst_prev_state_at_init, "after 2 reset 2 steps")
         
@@ -403,23 +404,28 @@ class PreviousStateTester(unittest.TestCase):
         obs, reward, done, info = self.env.step(self.env.action_space())
         assert obs._shunt_bus[sh_id] == 1
         assert np.abs(obs._shunt_p[sh_id] - th_val_p[obs.current_step]) <= tol, f"{obs._shunt_p[sh_id]} vs {th_val_p[obs.current_step]}"
-        assert np.abs(obs._shunt_q[sh_id] - th_val_q[obs.current_step]) <= tol, f"{obs._shunt_p[sh_id]} vs {th_val_q[obs.current_step]}"
+        assert np.abs(obs._shunt_q[sh_id] - th_val_q[obs.current_step]) <= tol, f"{obs._shunt_q[sh_id]} vs {th_val_q[obs.current_step]}"
         self._aux_test_matches_obs(obs, self.env, "after 1 step")
         
         # for battery of tests: the bus
         obs, reward, done, info = self.env.step(self.env.action_space({"shunt": {"set_bus": [(sh_id, -1)]}}))
-        id_pr_ok = obs.current_step - 1
         assert obs._shunt_bus[sh_id] == -1
         assert obs._shunt_p[sh_id] == 0.
         assert obs._shunt_q[sh_id] == 0.
         assert self.env._previous_conn_state._shunt_bus[sh_id] == 1
-        assert np.abs(self.env._previous_conn_state._shunt_p - th_val_p[id_pr_ok]) <= tol, f"{obs._shunt_p[sh_id]} vs {th_val_p[id_pr_ok]}"
-        assert np.abs(self.env._previous_conn_state._shunt_q - th_val_q[id_pr_ok]) <= tol, f"{obs._shunt_p[sh_id]} vs {th_val_q[id_pr_ok]}"
+        assert np.abs(self.env._previous_conn_state._shunt_p - 0.) <= tol
+        assert np.abs(self.env._previous_conn_state._shunt_q - (-19.)) <= tol  # setpoint of shunt is -19. and NOT the stuff in obs._shunt_q !
+        assert np.abs(obs._prev_conn._shunt_p - 0.) <= tol
+        assert np.abs(obs._prev_conn._shunt_q - (-19.)) <= tol  # setpoint of shunt is -19. and NOT the stuff in obs._shunt_q !
         
         obs, reward, done, info = self.env.step(self.env.action_space({"shunt": {"set_bus": [(sh_id, 1)]}}))
         assert obs._shunt_bus[sh_id] == 1
         assert np.abs(obs._shunt_p[sh_id] - th_val_p[obs.current_step]) <= tol, f"{obs._shunt_p[sh_id]} vs {th_val_p[obs.current_step]}"
-        assert np.abs(obs._shunt_q[sh_id] - th_val_q[obs.current_step]) <= tol, f"{obs._shunt_p[sh_id]} vs {th_val_q[obs.current_step]}"
+        assert np.abs(obs._shunt_q[sh_id] - th_val_q[obs.current_step]) <= tol, f"{obs._shunt_q[sh_id]} vs {th_val_q[obs.current_step]}"
+        assert np.abs(self.env._previous_conn_state._shunt_p - 0.) <= tol
+        assert np.abs(self.env._previous_conn_state._shunt_q - (-19.)) <= tol  # setpoint of shunt is -19. and NOT the stuff in obs._shunt_q !
+        assert np.abs(obs._prev_conn._shunt_p - 0.) <= tol
+        assert np.abs(obs._prev_conn._shunt_q - (-19.)) <= tol  # setpoint of shunt is -19. and NOT the stuff in obs._shunt_q !
         assert self.env._previous_conn_state._shunt_bus[sh_id] == 1
         
     def test_shunt_simulate(self):
@@ -445,8 +451,8 @@ class TestWithGridLineDisco(unittest.TestCase):
     def _aux_check_line_disco(self, line_id=2):
         assert self.env._previous_conn_state._topo_vect[type(self.env).line_or_pos_topo_vect[line_id]] == -1
         assert self.env._previous_conn_state._topo_vect[type(self.env).line_ex_pos_topo_vect[line_id]] == -1
-        assert self.env._backend_action.current_topo.values[type(self.env).line_or_pos_topo_vect[line_id]] == -1
-        assert self.env._backend_action.current_topo.values[type(self.env).line_ex_pos_topo_vect[line_id]] == -1
+        assert self.env._backend_action.current_topo.values[type(self.env).line_or_pos_topo_vect[line_id]] == -1, f"{self.env._backend_action.current_topo.values[type(self.env).line_or_pos_topo_vect[line_id]]}"
+        assert self.env._backend_action.current_topo.values[type(self.env).line_ex_pos_topo_vect[line_id]] == -1, f"{self.env._backend_action.current_topo.values[type(self.env).line_ex_pos_topo_vect[line_id]]}"
         assert self.env._backend_action.last_topo_registered.values[type(self.env).line_or_pos_topo_vect[line_id]] == -1
         assert self.env._backend_action.last_topo_registered.values[type(self.env).line_ex_pos_topo_vect[line_id]] == -1
         

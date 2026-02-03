@@ -7958,20 +7958,20 @@ class BaseAction(GridObjects):
     def check_reconnection_valid(self, current_line_status, last_valid_topo_vect):
         # check lines can be reconnected safely if no bus is provided
         if not (self._modif_set_status or self._modif_change_status):
+            # action does not modifies line status, no problem
             return None
+        
+        if (last_valid_topo_vect >= 1).all():
+            # all previous buses known, 
+            # no need to check 
+            # TODO speed optimization: if i end up here for one step, then I end up here for all the following
+            return None
+        
         cls = type(self)
         
         # line reconnected
         reco = ((self._set_line_status == 1) | 
                 (self._switch_line_status & (~current_line_status)))
-        
-        # # line reconnected without topology
-        # if self._modif_set_bus:
-        #     reco_without_bus = reco.copy()
-        #     reco_without_bus[self._set_topo_vect[cls.line_or_pos_topo_vect] >= 1] = False
-        #     reco_without_bus[self._set_topo_vect[cls.line_ex_pos_topo_vect] >= 1] = False
-        # else:
-        #     reco_without_bus = reco
             
         # check that the "previous bus" is known for these lines
         vect_or = cls.line_or_pos_topo_vect[reco]

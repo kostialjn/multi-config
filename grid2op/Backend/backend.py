@@ -2217,14 +2217,9 @@ class Backend(GridObjects, ABC):
         }
 
         if type(self).shunts_data_available:
-            p_s, q_s, sh_v, bus_s = self.shunt_info()
+            p_s, q_s, bus_s = self.get_shunt_setpoint()
             dict_["shunt"] = {"shunt_bus": bus_s}
             if (bus_s >= 1).sum():
-                sh_conn = bus_s > 0
-                p_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
-                q_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
-                p_s[bus_s == -1] = np.nan
-                q_s[bus_s == -1] = np.nan
                 dict_["shunt"]["shunt_p"] = p_s
                 dict_["shunt"]["shunt_q"] = q_s
 
@@ -2235,6 +2230,23 @@ class Backend(GridObjects, ABC):
         set_me.update(dict_)
         return set_me
 
+    def get_shunt_setpoint(self):
+        """INTERNAL
+        
+        Is called in "get_action_to_set" but also in "EnvPrevState.update_from_backend"
+        
+        This gives the proper input to provide to the shunt (in an action or a backend action) to have 
+        the right outcome.
+        """
+        p_s, q_s, sh_v, bus_s = self.shunt_info()
+        if (bus_s >= 1).any():
+            sh_conn = bus_s > 0
+            p_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
+            q_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
+        p_s[bus_s == -1] = np.nan
+        q_s[bus_s == -1] = np.nan
+        return p_s, q_s, bus_s
+        
     def update_from_obs(self,
                         obs: "grid2op.Observation.CompleteObservation",
                         force_update: Optional[bool]=False) -> "_BackendAction":

@@ -1513,10 +1513,24 @@ class BaseEnv(GridObjects, RandomObject, ABC):
                                                       np.zeros(n_shunt, dtype=dt_int),
                                                       )
         
+        self._compute_init_state()
+        
+    def _compute_init_state(self, do_powerflow=True):
+        """
+        INTERNAL
+        
+        Usefull to initialize the grid representatino of the env (_backend_action and _previous_conn_state)
+        to the correct value in the grid.
+        
+        It is called when the environment is initialized (first time) but also when the env is reset.
+        """
         if self._init_obs is None:
             # regular environment, initialized from scratch
             try:
-                self.backend.runpf(is_dc=self._parameters.ENV_DC)
+                if do_powerflow:
+                    conv, exc = self.backend.runpf(is_dc=self._parameters.ENV_DC)
+                    if not conv:
+                        raise exc
                 self._previous_conn_state.update_from_backend(self.backend)
             except Exception as exc_:
                 # nothing to do in this case
@@ -1527,8 +1541,8 @@ class BaseEnv(GridObjects, RandomObject, ABC):
             # environment initialized from an observation, eg forecast_env
             # update the backend
             self._backend_action = self.backend.update_from_obs(self._init_obs)
-            # self._backend_action.last_topo_registered.values[:] = self._init_obs._prev_conn._topo_vect
             self._previous_conn_state.update_from_other(self._init_obs._prev_conn)
+            self._backend_action.current_topo.values[:] = self._init_obs.topo_vect
 
         # "fix" topology in case of disconnected element in grid file
         self._previous_conn_state.fix_topo_bus()
@@ -1537,8 +1551,21 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         
         # update backend_action with the "last known" state
         self._backend_action.last_topo_registered.values[:] = self._previous_conn_state._topo_vect
-        self._backend_action.current_topo.values[:] = self._previous_conn_state._topo_vect
         self._backend_action._needs_active_bus = self.backend._needs_active_bus
+        
+        # assign correct topo in case of "no init obs" (not done in the first if self._init_obs is None)
+        # because I need the fix_topo_bus()
+        if self._init_obs is None:
+            self._backend_action.current_topo.values[:] = self._previous_conn_state._topo_vect
+        
+    def synch_backend_action(self, real_env_backend_action: _BackendAction) -> None:
+        """Synchronize the backend action of the (simulated) environment with the backend action of the real environment.
+        
+        This is called by the "simulated environment" (forecast env) and allow to remember "past state" of the grid
+        
+        This function should be overloaded in the simulated environment
+        """
+        pass
         
     def _update_parameters(self):
         """update value for the new parameters"""
@@ -3226,7 +3253,6 @@ class BaseEnv(GridObjects, RandomObject, ABC):
             except_.append(except_tmp)
         else:
             res_action = action
-            # self._backend_action.set_redispatch(self._actual_dispatch)
         return res_action, failed_redisp, is_illegal_reco, is_done
 
     def _aux_update_backend_action(self,
@@ -3836,7 +3862,7 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         except StopIteration:
             # episode is over
             is_done = True
-            
+        
         self._backend_action.reset()
         end_step = time.perf_counter()
         self._time_step += end_step - beg_step

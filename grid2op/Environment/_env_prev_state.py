@@ -7,7 +7,9 @@
 # This file is part of Grid2Op, Grid2Op a testbed platform to model sequential decision making in power systems.
 
 import copy
-from typing import Optional, Type, Union
+from typing import Dict, Literal, Optional, Tuple, Type, Union
+
+import attr
 import numpy as np
 from grid2op.Space import GridObjects
 import grid2op.Backend
@@ -37,20 +39,61 @@ class _EnvPreviousState(object):
             self._grid_obj_cls : CLS_AS_DICT_TYPING = grid_obj_cls
         self._n_storage = len(self._grid_obj_cls["name_storage"])  # to avoid typing that over and over again
         
-        self._load_p : np.ndarray = 1. * init_load_p
-        self._load_q : np.ndarray = 1. * init_load_q
-        self._gen_p : np.ndarray = 1. * init_gen_p
-        self._gen_v : np.ndarray = 1. * init_gen_v
-        self._storage_p : np.ndarray = 1. * init_storage_p
-        self._topo_vect : np.ndarray = 1 * init_topo_vect
-        self._shunt_p : np.ndarray = 1. * init_shunt_p
-        self._shunt_q : np.ndarray = 1. * init_shunt_q
-        self._shunt_bus : np.ndarray = 1. * init_shunt_bus
+        self._load_p : np.ndarray = init_load_p.copy()
+        self._load_q : np.ndarray = init_load_q.copy()
+        self._gen_p : np.ndarray = init_gen_p.copy()
+        self._gen_v : np.ndarray = init_gen_v.copy()
+        self._storage_p : np.ndarray = init_storage_p.copy()
+        self._topo_vect : np.ndarray = init_topo_vect.copy()
+        self._shunt_p : np.ndarray = init_shunt_p.copy()
+        self._shunt_q : np.ndarray = init_shunt_q.copy()
+        self._shunt_bus : np.ndarray = init_shunt_bus.copy()
         if "detailed_topo_desc" in self._grid_obj_cls and self._grid_obj_cls["detailed_topo_desc"] is not None:
-            self._switch_state = 1 * init_switch_state
+            self._switch_state = init_switch_state.copy()
         else:
             self._switch_state = None
-            
+        
+    def __eq__(self, value: "_EnvPreviousState"):
+        return len(self.where_different(value)) == 0
+    
+    def where_different(self, oth: "_EnvPreviousState") -> Dict[
+        Literal["_load_p", "_load_q", "_gen_p", "_gen_v", "_storage_p", "_topo_vect", "_shunt_p", "_shunt_q", "_shunt_bus", "_switch_state"],
+        Tuple[Literal["size", "values", "missing_in_me", "missing_in_other", "me_none", "other_none"],
+              Optional[np.ndarray], Optional[np.ndarray]]
+    ]:
+        """Where this object is different from another one"""
+        
+        res = {}
+        for attr_nm in ["_load_p", "_load_q", "_gen_p", "_gen_v", "_storage_p", "_topo_vect", "_shunt_p", "_shunt_q", "_shunt_bus", "_switch_state"]:
+            if not hasattr(self, attr_nm) and not hasattr(oth, attr_nm):
+                # attribute is not present (eg _switch_state when no switch are present)
+                continue
+            if not hasattr(self, attr_nm) and hasattr(oth, attr_nm):
+                res[attr_nm] = ("missing_in_me", None, getattr(oth, attr_nm))
+                continue
+            if hasattr(self, attr_nm) and not hasattr(oth, attr_nm):
+                res[attr_nm] = ("missing_in_other", getattr(self, attr_nm), None)
+                continue
+            arr_me : Optional[np.ndarray] = getattr(self, attr_nm)
+            arr_oth : Optional[np.ndarray] = getattr(oth, attr_nm)
+            if arr_me is None and arr_oth is None:
+                # eg _shunt_p when no shunts
+                continue
+            if arr_me is None and arr_oth is not None:
+                res[attr_nm] = ("me_none", None, arr_oth)
+                continue
+            if arr_me is not None and arr_oth is None:
+                res[attr_nm] = ("other_none", arr_me, None)
+                continue
+            if arr_me.shape != arr_oth.shape:
+                res[attr_nm] = ("size", arr_me.shape, arr_oth.shape)
+                continue
+            if np.allclose(arr_me, arr_oth):
+                # they match
+                continue
+            res[attr_nm] = ("values", arr_me.copy(), arr_oth.copy())
+        return res
+    
     def copy(self):
         return _EnvPreviousState(grid_obj_cls=self._grid_obj_cls,
                                  init_load_p=self._load_p,
@@ -127,9 +170,9 @@ class _EnvPreviousState(object):
         else:
             storage_p = None
         if type(backend).shunts_data_available:
-            shunt_p, shunt_q, _, shunt_bus = backend.shunt_info()
+            shunt_p, shunt_q, shunt_bus = backend.get_shunt_setpoint()
         else:
-            shunt_p, shunt_q, _, shunt_bus = None, None, None, None
+            shunt_p, shunt_q, shunt_bus = None, None, None
             
         switches = None
         # if type(backend).detailed_topo_desc is not None:

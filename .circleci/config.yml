@@ -469,7 +469,8 @@ workflows:
     version: 2.1
     test:
         jobs:
-          - test
+          - test_generic
+          - test_agent
           - legacy_lightsim_old_pp
           - legacy_lightsim
           - test_chronix2grid

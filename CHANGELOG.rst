@@ -100,9 +100,20 @@ Native multi agents support:
 - add detachment
 - add change_bus / set_bus
 
-[1.12.3]
+[1.12.3] - 2026-02-04
 -----------------------
-
+- [FIXED] the warnings when building the documentation.
+- [FIXED] the deprecation warnings when importing grid2op 
+  with recent python versions (due to presence of math equation 
+  in some docstring)
+- [FIXED] issues when loading a grid with disconnected elements: grid2op
+  did not know on which bus to reconnect them when only the "reconnect" bus was given.
+- [FIXED] an issue leading to wrong setpoint values for shunt_p and shunt_q in the previous
+  stored state (EnvPreviousState)
+- [ADDED] a test (in the AAA test) to assess that the backend._sh_vnkv is properly set if the shunts are
+  handled by the backend.
+- [IMPROVED] code for AAA backend tests (avoid equality check for float)
+- [IMPROVED] doc when loading grid with disconnected elements
 
 [1.12.2] - 2025-11-18
 ----------------------
@@ -1173,8 +1184,8 @@ Native multi agents support:
 - [ADDED]: a new kind of opponent that is able to attack at "more random" times with "more random" duration.
   See the `GeometricOpponent`.
 - [IMPROVED]: on windows at least, grid2op does not work with gym < 0.17.2 Checks are performed in order to make sure
-  the installed open ai gym package meets this requirement (see issue
-  `Issue#185 <https://github.com/Grid2Op/grid2op/issues/185>`_ )
+  the installed open ai gym package meets this requirement 
+  (see issue `Issue#185 <https://github.com/Grid2Op/grid2op/issues/185>`_ )
 - [IMPROVED] the seed of openAI gym for composed action space (see issue `https://github.com/openai/gym/issues/2166`):
   in waiting for an official fix, grid2op will use the solution proposed there
   https://github.com/openai/gym/issues/2166#issuecomment-803984619

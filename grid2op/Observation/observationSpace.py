@@ -211,6 +211,7 @@ class ObservationSpace(SerializableObservationSpace):
             v.initialize(self.obs_env)
             
         self.obs_env.backend._disconnected_during_cf = np.full(type(self.obs_env).n_line, fill_value=-1, dtype=dt_int)
+        self.obs_env.synch_backend_action(env._backend_action)
     
     def _aux_create_backend(self, env, observation_bk_class, observation_bk_kwargs, path_grid_for, _local_dir_cls):
         if observation_bk_kwargs is None:

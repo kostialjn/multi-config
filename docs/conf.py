@@ -22,7 +22,7 @@ copyright = 'Grid2Op a Series of LF Projects, LLC,\nFor website terms of use, tr
 author = 'Benjamin Donnot'
 
 # The full version, including alpha/beta/rc tags
-release = '1.12.3.dev0'
+release = '1.12.3'
 version = '1.12'
 
 
@@ -35,14 +35,15 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
-    'sphinx.ext.imgmath',
+    'sphinx.ext.imgmath',  # for math in documentation
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     # 'builder',
     'sphinx.ext.extlinks',
     'sphinx.ext.napoleon',
     'sphinxcontrib_trio',
-     "sphinx_rtd_theme",
+    "sphinx_rtd_theme",
+    # 'sphinx.ext.mathjax',
     # toc of modules
     'autodocsumm',
     # 'sphinx.ext.autosectionlabel',

@@ -202,7 +202,7 @@ but if you want to slightly modify one of its component.
    :maxdepth: 1
    :caption: Technical documentation for grid2op "external" contributions
 
-   developer
+   grid2op_extend
 
 
 Technical documentation for grid2op developers

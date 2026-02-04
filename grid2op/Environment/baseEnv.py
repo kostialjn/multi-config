@@ -171,10 +171,6 @@ class BaseEnv(GridObjects, RandomObject, ABC):
             
     Attributes
     ----------
-
-    parameters: :class:`grid2op.Parameters.Parameters`
-        The parameters of the game (to expose more control on what is being simulated)
-
     with_forecast: ``bool``
         Whether the chronics allow to have some kind of "forecast". See :func:`BaseEnv.activate_forceast`
         for more information
@@ -318,7 +314,9 @@ class BaseEnv(GridObjects, RandomObject, ABC):
     kwargs_observation: ``dict``
         TODO
 
-    # TODO add the units (eg MW, MWh, MW/time step,etc.) in the redispatching related attributes
+    warnings
+    --------
+    TODO add the units (eg MW, MWh, MW/time step,etc.) in the redispatching related attributes
     """
 
     ALARM_FILE_NAME = "alerts_info.json"
@@ -1515,29 +1513,59 @@ class BaseEnv(GridObjects, RandomObject, ABC):
                                                       np.zeros(n_shunt, dtype=dt_int),
                                                       )
         
+        self._compute_init_state()
+        
+    def _compute_init_state(self, do_powerflow=True):
+        """
+        INTERNAL
+        
+        Usefull to initialize the grid representatino of the env (_backend_action and _previous_conn_state)
+        to the correct value in the grid.
+        
+        It is called when the environment is initialized (first time) but also when the env is reset.
+        """
         if self._init_obs is None:
             # regular environment, initialized from scratch
             try:
-                self.backend.runpf(is_dc=self._parameters.ENV_DC)
+                if do_powerflow:
+                    conv, exc = self.backend.runpf(is_dc=self._parameters.ENV_DC)
+                    if not conv:
+                        raise exc
                 self._previous_conn_state.update_from_backend(self.backend)
             except Exception as exc_:
                 # nothing to do in this case
                 self.logger.warning(f"Impossible to retrieve the initial state of the grid before running the initial powerflow: {exc_}")
                 self._previous_conn_state._topo_vect[:] = 1  # I force assign everything to busbar 1 by default...
-            self._cst_prev_state_at_init = copy.deepcopy(self._previous_conn_state)
             self._backend_action = self._backend_action_class()
         else:
             # environment initialized from an observation, eg forecast_env
             # update the backend
             self._backend_action = self.backend.update_from_obs(self._init_obs)
-            self._backend_action.last_topo_registered.values[:] = self._init_obs._prev_conn._topo_vect
-            self._cst_prev_state_at_init = copy.deepcopy(self._init_obs._prev_conn)
             self._previous_conn_state.update_from_other(self._init_obs._prev_conn)
-            
+            self._backend_action.current_topo.values[:] = self._init_obs.topo_vect
+
+        # "fix" topology in case of disconnected element in grid file
+        self._previous_conn_state.fix_topo_bus()
+        self._cst_prev_state_at_init = self._previous_conn_state.copy()
         self._cst_prev_state_at_init.prevent_modification()
+        
         # update backend_action with the "last known" state
         self._backend_action.last_topo_registered.values[:] = self._previous_conn_state._topo_vect
         self._backend_action._needs_active_bus = self.backend._needs_active_bus
+        
+        # assign correct topo in case of "no init obs" (not done in the first if self._init_obs is None)
+        # because I need the fix_topo_bus()
+        if self._init_obs is None:
+            self._backend_action.current_topo.values[:] = self._previous_conn_state._topo_vect
+        
+    def synch_backend_action(self, real_env_backend_action: _BackendAction) -> None:
+        """Synchronize the backend action of the (simulated) environment with the backend action of the real environment.
+        
+        This is called by the "simulated environment" (forecast env) and allow to remember "past state" of the grid
+        
+        This function should be overloaded in the simulated environment
+        """
+        pass
         
     def _update_parameters(self):
         """update value for the new parameters"""
@@ -3225,7 +3253,6 @@ class BaseEnv(GridObjects, RandomObject, ABC):
             except_.append(except_tmp)
         else:
             res_action = action
-            # self._backend_action.set_redispatch(self._actual_dispatch)
         return res_action, failed_redisp, is_illegal_reco, is_done
 
     def _aux_update_backend_action(self,
@@ -3414,12 +3441,12 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         self._delta_gen_p[gen_detached_user] = 0.  # when the backend disconnect it it should not be set to 0.
         self._prev_gen_p[:] = self._gen_activeprod_t
         
+        # update the previous state
+        self._previous_conn_state.update_from_backend(self.backend)
+        
         # finally, build the observation (it's a different one at each step, we cannot reuse the same one)
         # THIS SHOULD BE DONE AFTER EVERYTHING IS INITIALIZED !
         self.current_obs = self.get_obs(_do_copy=False)
-        
-        # update the previous state
-        self._previous_conn_state.update_from_backend(self.backend)
         
         self._time_extract_obs += time.perf_counter() - beg_res
         return None
@@ -3631,7 +3658,6 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         # I did something after calling "env.seed()" which is
         # somehow "env.step()" or "env.reset()"
         self._has_just_been_seeded =  False  
-        
         cls = type(self)
         has_error = True
         is_done = False
@@ -3703,6 +3729,11 @@ class BaseEnv(GridObjects, RandomObject, ABC):
                     )
                     action, init_disp, action_storage_power = self._aux_step_reset_action()
                     is_ambiguous = True 
+            reco_valid = action.check_reconnection_valid(self._line_status, self._previous_conn_state._topo_vect)
+            if reco_valid is not None:
+                action, init_disp, action_storage_power = self._aux_step_reset_action()
+                is_illegal = True
+                except_.append(reco_valid)
                 
             # speed optimization: during all the "env.step" the "topological impact"
             # of an action is called multiple times, I cache the results
@@ -3743,7 +3774,7 @@ class BaseEnv(GridObjects, RandomObject, ABC):
                 False  # because it absorbs all redispatching actions
             )
             new_p = self._get_new_prod_setpoint(action)
-            new_p_th = 1.0 * new_p
+            new_p_th = new_p.copy()
             self._feed_data_for_detachment(new_p_th)  # should be called before _axu_apply_detachment
             
             # storage unit
@@ -3831,7 +3862,7 @@ class BaseEnv(GridObjects, RandomObject, ABC):
         except StopIteration:
             # episode is over
             is_done = True
-            
+        
         self._backend_action.reset()
         end_step = time.perf_counter()
         self._time_step += end_step - beg_step

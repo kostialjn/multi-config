@@ -264,6 +264,19 @@ class BaseObservation(GridObjects):
         non renewable generators)
         
         This is NOT the "curtailment" given in the action by the agent.
+        
+        This "effective curtailment" is expressed in MW rather than in ratio of pmax.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import grid2op
+            env_name = "l2rpn_case14_sandbox"  # or any other name
+            env = grid2op.make(env_name)
+
+            obs = env.reset()
+            curtailment_mw = obs.curtailment_mw
 
     curtailment: :class:`numpy.ndarray`, dtype:float
         Give the power curtailed for each generator. It is expressed in
@@ -4333,21 +4346,6 @@ class BaseObservation(GridObjects):
 
     @property
     def curtailment_mw(self) -> np.ndarray:
-        """
-        return the curtailment, expressed in MW rather than in ratio of pmax.
-
-        Examples
-        --------
-        .. code-block:: python
-
-            import grid2op
-            env_name = "l2rpn_case14_sandbox"  # or any other name
-            env = grid2op.make(env_name)
-
-            obs = env.reset()
-            curtailment_mw = obs.curtailment_mw
-
-        """
         return self.curtailment * self.gen_pmax
 
     @property
@@ -5062,13 +5060,14 @@ class BaseObservation(GridObjects):
         backend._is_loaded = True
         nb_highres_called = self._obs_env.highres_sim_counter.nb_highres_called
         
-        res = ForecastEnv(**self._ptr_kwargs_env,
-                          backend=backend,
-                          chronics_handler=ch,
-                          parameters=self._obs_env.parameters,
-                          _init_obs=self,
-                          highres_sim_counter=self._obs_env.highres_sim_counter
-                          )
+        res = ForecastEnv(
+            **self._ptr_kwargs_env,
+            backend=backend,
+            chronics_handler=ch,
+            parameters=self._obs_env.parameters,
+            _init_obs=self,
+            highres_sim_counter=self._obs_env.highres_sim_counter
+            )
         # it does one simulation when it inits it (calling env.step) so I remove 1 here
         res.highres_sim_counter._HighResSimCounter__nb_highres_called = nb_highres_called
         return res

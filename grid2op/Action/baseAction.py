@@ -216,13 +216,13 @@ class BaseAction(GridObjects):
 
     _subs_impacted: :class:`numpy.ndarray`, dtype:bool
         This attributes is either not initialized (set to ``None``) or it tells, for each substation, if it is impacted
-        by the action (in this case :attr:`BaseAction._subs_impacted`\[sub_id\] is ``True``) or not
-        (in this case :attr:`BaseAction._subs_impacted`\[sub_id\] is ``False``)
+        by the action (in this case :attr:`BaseAction._subs_impacted` [sub_id] is ``True``) or not
+        (in this case :attr:`BaseAction._subs_impacted` [sub_id] is ``False``)
 
     _lines_impacted: :class:`numpy.ndarray`, dtype:bool
         This attributes is either not initialized (set to ``None``) or it tells, for each powerline, if it is impacted
-        by the action (in this case :attr:`BaseAction._lines_impacted`\[line_id\] is ``True``) or not
-        (in this case :attr:`BaseAction._subs_impacted`\[line_id\] is ``False``)
+        by the action (in this case :attr:`BaseAction._lines_impacted` [line_id] is ``True``) or not
+        (in this case :attr:`BaseAction._subs_impacted` [line_id] is ``False``)
 
     attr_list_vect: ``list``, static
         The authorized key that are processed by :func:`BaseAction.__call__` to modify the injections
@@ -630,6 +630,7 @@ class BaseAction(GridObjects):
 
 
         #: .. versionadded:: 1.12.1
+        #:
         #: allows the agent to perform an action
         #: that depends on the backend type used.
         #: See the doc for more information.
@@ -652,7 +653,8 @@ class BaseAction(GridObjects):
         self._modif_detach_storage = False
         
         #: .. versionadded:: 1.12.1
-        #: cache not to recompute the `is_ambiguous` for the same action
+        #: 
+        #: cache not to recompute the :attr:`BaseAction.is_ambiguous` for the same action
         self._cached_is_not_ambiguous = True
 
     # init the private argument when needed
@@ -1618,10 +1620,15 @@ class BaseAction(GridObjects):
     def _aux_vect_different(self, other, modif_flag_nm, vect_nm):
         """Implement something similar to :
 
-        ((self._modif_set_status != other._modif_set_status) or
-          not np.all(self._set_line_status == other._set_line_status)
-        )
+        .. code-block:: python
+        
+            ((self._modif_set_status != other._modif_set_status) or
+                not np.all(self._set_line_status == other._set_line_status)
+            )
+            
         But for different flag (*eg* `_modif_set_status`) and vector (*eg* `_private_set_line_status`)
+        to avoid duplicating the code.
+        
         """
         if getattr(self, modif_flag_nm) != getattr(other, modif_flag_nm):
             # they are different
@@ -1689,18 +1696,18 @@ class BaseAction(GridObjects):
         Test the equality of two actions.
 
         2 actions are said to be identical if they have the same impact on the powergrid. This is unrelated to their
-        respective class. For example, if an Action is of class :class:`Action` and doesn't act on the injection, it
+        respective class. For example, if an Action is of class :class:`BaseAction` and doesn't act on the injection, it
         can be equal to an Action of the derived class :class:`TopologyAction` (if the topological modifications are the
         same of course).
 
-        This implies that the attributes :attr:`Action.authorized_keys` is not checked in this method.
+        This implies that the attributes :attr:`BaseAction.authorized_keys` is not checked in this method.
 
         Note that if 2 actions don't act on the same powergrid, or on the same backend (eg number of loads, or
         generators are not the same in *self* and *other*, or they are not in the same order) then action will be
         declared as different.
 
         **Known issue** if two backends are different, but the description of the _grid are identical (ie all
-        n_gen, n_load, n_line, sub_info, dim_topo, all vectors \*_to_subid, and \*_pos_topo_vect are
+        n_gen, n_load, n_line, sub_info, dim_topo, all vectors \\*_to_subid, and \\*_pos_topo_vect are
         identical) then this method will not detect the backend are different, and the action could be declared
         as identical. For now, this is only a theoretical behavior: if everything is the same, then probably, up to
         the naming convention, then the power grids are identical too.
@@ -1908,7 +1915,7 @@ class BaseAction(GridObjects):
             then the argument `powerline_status` might be ignored in future calls where `_read_from_cache` is
             ``True``
 
-            .. newinversion:: 1.11.0
+            .. versionadded:: 1.11.0
 
             .. warning::
                 Use with extra care, it's private API.
@@ -1925,7 +1932,7 @@ class BaseAction(GridObjects):
             By default it's ``True``, but by default no cache is not set up. This means that by default
             the argument `powerline_status` is in fact used.
 
-            .. newinversion:: 1.11.0
+            .. versionadded:: 1.11.0
 
         Returns
         -------
@@ -5587,9 +5594,9 @@ class BaseAction(GridObjects):
 
         Will:
 
-          * set to bus 1 the (unique) element for which \*_pos_topo_vect is 1
-          * disconnect the (unique) element for which \*_pos_topo_vect is 2
-          * set to bus 2 the (unique) element for which \*_pos_topo_vect is 3
+          * set to bus 1 the (unique) element for which \\*_pos_topo_vect is 1
+          * disconnect the (unique) element for which \\*_pos_topo_vect is 2
+          * set to bus 2 the (unique) element for which \\*_pos_topo_vect is 3
 
         You can use the documentation page :ref:`modeled-elements-module` for more information about which
         element correspond to what component of this vector.
@@ -5909,9 +5916,9 @@ class BaseAction(GridObjects):
 
         Will:
 
-          * change the bus of the (unique) element for which \*_pos_topo_vect is 1
-          * change the bus of (unique) element for which \*_pos_topo_vect is 2
-          * change the bus of (unique) element for which \*_pos_topo_vect is 3
+          * change the bus of the (unique) element for which \\*_pos_topo_vect is 1
+          * change the bus of (unique) element for which \\*_pos_topo_vect is 2
+          * change the bus of (unique) element for which \\*_pos_topo_vect is 3
 
         You can use the documentation page :ref:`modeled-elements-module` for more information about which
         element correspond to what component of this "vector".
@@ -7419,7 +7426,7 @@ class BaseAction(GridObjects):
                               margin: float=10.,
                               do_copy: bool=False,
                               _tol_equal : float=0.01) -> Tuple["BaseAction", np.ndarray, np.ndarray]:
-        """
+        r"""
         This function tries to limit the possibility to end up
         with a "game over" because actions on curtailment or storage units (see the "Notes" section
         for more information).
@@ -7442,25 +7449,26 @@ class BaseAction(GridObjects):
         
         At each time, the environment ensures that the following equations are met:
 
-        1) for each controlable generators $p^{(c)}_{min} <= p^{(c)}_t <= p^{(c)}_{max}$
-        2) for each controlable generators $-ramp_{min}^{(c)} <= p^{(c)}_t - p^{(c)}_{t-1} <= ramp_{max}^{(c)}$
+        1) for each controlable generators :math:`p^{(c)}_{min} <= p^{(c)}_t <= p^{(c)}_{max}`
+        2) for each controlable generators :math:`-ramp_{min}^{(c)} <= p^{(c)}_t - p^{(c)}_{t-1} <= ramp_{max}^{(c)}`
         3) at each step the sum of MW curtailed and the total contribution of storage units 
            is absorbed by the controlable generators so that the total amount of power injected 
            at this step does not change: 
-           $\sum_{\text{all generators } g} p^{(g, scenario)}_t = \sum_{\text{controlable generators } c}  p^{(c)}_t + \sum_{\text{storage unit } s} p^{s}_t + \sum_{\text{renewable generator} r} p^{(r)}_t$
-           where $p^{(g)}_t$ denotes the productions of generator $g$ in the input data "scenario" 
+           :math:`\sum_{\text{all generators } g} p^{(g, scenario)}_t = \sum_{\text{controlable generators } c}  p^{(c)}_t + \sum_{\text{storage unit } s} p^{s}_t + \sum_{\text{renewable generator} r} p^{(r)}_t`
+           where :math:`p^{(g)}_t` denotes the productions of generator $g$ in the input data "scenario" 
            (*ie* "in the current episode", "before any modification", "decided by the market / central authority").
 
-        In the above equations, `\sum_{\text{storage unit } s} p^{s}_t` are controled by the action (thanks to the storage units)
-        and `\sum_{\text{renewable generator} r} p^{(r)}_t` are controlled by the curtailment.
+        In the above equations: 
+        ..:math:`\sum_{\text{storage unit } s} p^{s}_t` are controled by the action (thanks to the storage units)
+        and :math:`\sum_{\text{renewable generator} r} p^{(r)}_t` are controlled by the curtailment.
         
-        `\sum_{\text{all generators } g} p^{(g, scenario)}_t` are input data from the environment (that cannot be modify).
+        :math:`\sum_{\text{all generators } g} p^{(g, scenario)}_t` are input data from the environment (that cannot be modify).
         
-        The exact value of each `p^{(c)}_t` (for each controlable generator) is computed by an internal routine of the
+        The exact value of each :math:`p^{(c)}_t` (for each controlable generator) is computed by an internal routine of the
         environment. 
         
-        The constraint comes from the fact that `\sum_{\text{controlable generators } c}  p^{(c)}_t` is determined by the last equation
-        above but at the same time the values of each `p^{(c)}_t` (for each controllable generator) is heavily constrained
+        The constraint comes from the fact that :math:`\sum_{\text{controlable generators } c}  p^{(c)}_t` is determined by the last equation
+        above but at the same time the values of each :math:`p^{(c)}_t` (for each controllable generator) is heavily constrained
         by equations 1) and 2).
 
         .. note::
@@ -7946,3 +7954,46 @@ class BaseAction(GridObjects):
         `detach_load`, `detach_gen` or `detach_storage`
         """
         return self._modif_detach_gen or self._modif_detach_load or self._modif_detach_storage
+    
+    def check_reconnection_valid(self, current_line_status, last_valid_topo_vect):
+        # check lines can be reconnected safely if no bus is provided
+        if not (self._modif_set_status or self._modif_change_status):
+            # action does not modifies line status, no problem
+            return None
+        
+        if (last_valid_topo_vect >= 1).all():
+            # all previous buses known, 
+            # no need to check 
+            # TODO speed optimization: if i end up here for one step, then I end up here for all the following
+            return None
+        
+        cls = type(self)
+        
+        # line reconnected
+        reco = ((self._set_line_status == 1) | 
+                (self._switch_line_status & (~current_line_status)))
+            
+        # check that the "previous bus" is known for these lines
+        vect_or = cls.line_or_pos_topo_vect[reco]
+        vect_ex = cls.line_ex_pos_topo_vect[reco]
+        if not self._modif_set_bus:
+            # reconnection without proper bus specified in the action
+            # previous bus should be registered at both ends
+            issue_or = last_valid_topo_vect[vect_or] < 1 
+            issue_ex = last_valid_topo_vect[vect_ex] < 1 
+        else:
+            # check that the user specified the bus on each side
+            issue_or = (last_valid_topo_vect[vect_or] < 1) & (self._set_topo_vect[vect_or] < 1)
+            issue_ex = (last_valid_topo_vect[vect_ex] < 1) & (self._set_topo_vect[vect_ex] < 1)
+        if issue_or.any():
+            return IllegalAction(f"Attempt to reconnect line "
+                                 f"{cls.name_line[issue_or.nonzero()[0]]} "
+                                 f"with id(s) {issue_or.nonzero()[0]} "
+                                 f"(origin side) with no known previous nodes. In this case, you need to specify "
+                                 f"explicitly the node / bus to which you want to reconnect it.")
+        if issue_ex.any():
+            return IllegalAction(f"Attempt to reconnect line "
+                                 f"{cls.name_line[issue_ex.nonzero()[0]]} "
+                                 f"with id(s) {issue_ex.nonzero()[0]} "
+                                 f"(extremity side) with no known previous nodes. In this case, you need to specify "
+                                 f"explicitly the node / bus to which you want to reconnect it.")

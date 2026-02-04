@@ -18,11 +18,12 @@ if TYPE_CHECKING:
 
 
 class ForecastEnv(Environment):
-    """Type of environment that increments the `highres_simulator` when it calls the env.step method.
+    """
+    Type of environment that increments the `highres_simulator` when it calls the env.step method.
     
     It is the returned value of :func:`grid2op.Observation.BaseObservation.get_forecast_env`.
     """
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         if "_update_obs_after_reward" not in kwargs:
             kwargs["_update_obs_after_reward"] = False
         super().__init__(**kwargs)
@@ -33,4 +34,5 @@ class ForecastEnv(Environment):
                                                 bool,
                                                 STEP_INFO_TYPING]:
         self._highres_sim_counter += 1
-        return super().step(action)
+        tmp = super().step(action)
+        return tmp

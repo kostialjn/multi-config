@@ -63,12 +63,12 @@ Objectives
     You will also find in this file the complete description on how the "powergrid" is represented in grid2op.
 
     Backend is an abstraction that represents the physical system (the powergrid). In theory every powerflow can be
-    used as a backend. And example of a backend using `Pandapower <http://www.pandapower.org/>`_ is available with
-    the :class:`grid2op.Backend.EducPandaPowerBackend.EducPandaPowerBackend` (only for demonstration purpose)
+    used as a backend. And example of a backend using `Pandapower <http://www.pandapower.org/>`__ is available with
+    the :class:`grid2op.Backend.educPandaPowerBackend.EducPandaPowerBackend` (only for demonstration purpose)
 
     If you want working backend, please use the :class:`grid2op.Backend.PandaPowerBackend` that
-    uses `Pandapower <http://www.pandapower.org/>`_ and
-    a port in c++ to a subset of pandapower called `LightSim2Grid <https://github.com/BDonnot/lightsim2grid>`_ .
+    uses `Pandapower <http://www.pandapower.org/>`__ and
+    a port in c++ to a subset of pandapower called `LightSim2Grid <https://github.com/BDonnot/lightsim2grid>`__ .
 
 
 To implement completely a backend, you should implement all the abstract function defined here :ref:`backend-module`.

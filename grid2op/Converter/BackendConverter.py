@@ -211,7 +211,7 @@ class BackendConverter(Backend):
                     ]
         
         if type(self.source_backend).shunts_data_available:
-            li_attrs += ["n_shunt", "name_shunt", "shunts_data_available"]
+            li_attrs += ["n_shunt", "name_shunt", "shunts_data_available", "_sh_vnkv"]
             
         for attr_nm in li_attrs:
             setattr(self, attr_nm, getattr(self.source_backend, attr_nm))
@@ -354,9 +354,12 @@ class BackendConverter(Backend):
                 sr2tg=self._shunt_sr2tg,
                 nm="shunt",
             )
+            self._sh_vnkv = self.source_backend._sh_vnkv[self._shunt_sr2tg]
         else:
             self.n_shunt = 0
             self.name_shunt = np.empty(0, dtype=str)
+            self._sh_vnkv = None
+            
         self._thermal_limit_a = 1.0 * self.target_backend.thermal_limit_a
         self.set_thermal_limit(self.target_backend.thermal_limit_a[self._line_tg2sr])
 

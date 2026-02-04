@@ -503,7 +503,7 @@ class Environment(BaseEnv):
         self._observation_space.set_real_env_kwargs(self)
 
         # see issue https://github.com/Grid2Op/grid2op/issues/617
-        # thermal limits are set AFTER this initial step
+        # thermal limits are set AFTER this initial "step"
         _no_overflow_disconnection = self._no_overflow_disconnection
         self._no_overflow_disconnection = True
         self._last_obs = None
@@ -982,21 +982,17 @@ class Environment(BaseEnv):
         self.backend.reset_public(self._init_grid_path)  
         self._needs_active_bus = self.backend._needs_active_bus
         
-        # self.backend.assert_grid_correct()
         self._previous_conn_state.update_from_other(self._cst_prev_state_at_init)
 
         if self._thermal_limit_a is not None:
             self.backend.set_thermal_limit(self._thermal_limit_a.astype(dt_float))
 
         self.nb_time_step = -1  # to have init obs at step 1 (and to prevent 'setting to proper state' "action" to be illegal)
-        
-        if self._init_obs is not None:
-            # update the backend
-            self._backend_action = self.backend.update_from_obs(self._init_obs)
-            self._backend_action.last_topo_registered.values[:] = self._init_obs._prev_conn._topo_vect
-        else:
-            self._backend_action = self._backend_action_class()
-        self._backend_action._needs_active_bus = self._needs_active_bus
+            
+        # synch the backend action with the init topology        
+        # NB topolgy is supposed to be accessible when the backend is loaded in "reset_public"
+        #    so no need to perform a powerflow in this case.
+        self._compute_init_state(do_powerflow=False) 
         
         if self._init_obs is not None:
             # NB this is called twice (once at the end of reset), this is the first call
@@ -1038,7 +1034,7 @@ class Environment(BaseEnv):
                 raise Grid2OpException(f"kwargs `method` used to set the initial state of the grid "
                                        f"is not understood (use one of `combine` or `ignore` and "
                                        f"not `{method}`)")
-                
+        
         *_, fail_to_start, info = self.step(init_action)
         if fail_to_start:
             raise Grid2OpException(

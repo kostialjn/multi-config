@@ -1,4 +1,5 @@
 .. for the color
+
 .. include:: ../special.rst  
 
 .. _n_gen: ./space.html#grid2op.Space.GridObjects.n_gen

@@ -155,9 +155,10 @@ class Backend(GridObjects, ABC):
         # thermal limit setting, in ampere, at the same "side" of the powerline than self.get_line_overflow
         self.thermal_limit_a : Optional[np.ndarray] = None
 
-        # for the shunt (only if supported)
-        self._sh_vnkv : Optional[np.ndarray]= None  # for each shunt gives the nominal value at the bus at which it is connected
-        # if this information is not present, then "get_action_to_set" might not behave correctly
+        #: for the shunt (only if supported)
+        #: for each shunt gives the nominal voltage value at the substation at which it is connected
+        #: if this information is not present, then "get_action_to_set" might not behave correctly
+        self._sh_vnkv : Optional[np.ndarray] = None  
 
         self.comp_time : float = 0.0
         self.can_output_theta : bool = False
@@ -192,7 +193,7 @@ class Backend(GridObjects, ABC):
         self.detachment_is_allowed : bool = DEFAULT_ALLOW_DETACHMENT
         
         #: .. versionadded: 1.11.0
-        self._load_bus_target : Optional[np.ndarray]= None
+        self._load_bus_target : Optional[np.ndarray] = None
         self._gen_bus_target : Optional[np.ndarray] = None
         self._storage_bus_target : Optional[np.ndarray] = None
         self._shunt_bus_target : Optional[np.ndarray] = None
@@ -491,7 +492,6 @@ class Backend(GridObjects, ABC):
             self._shunt_bus_target.flags.writeable = True
             self._shunt_bus_target[shunts_bus.changed] = shunts_bus.values[shunts_bus.changed]
             self._shunt_bus_target.flags.writeable = False
-        
         return self.apply_action(backend_action)
         
     def update_bus_target_after_pf(self, loads_bus, gens_bus, stos_bus, shunt_bus=None):
@@ -2112,7 +2112,7 @@ class Backend(GridObjects, ABC):
                 f' for {sto_nm} and column "discharging_efficiency"',
             )
 
-    def _aux_check_finite_float(self, nb_ : float, str_ : Optional[str]="") -> None:
+    def _aux_check_finite_float(self, nb_ : float, str_ : Optional[str]="") -> dt_float:
         """
         INTERNAL
 
@@ -2208,24 +2208,19 @@ class Backend(GridObjects, ABC):
         set_me = self._complete_action_class()  # pylint: disable=not-callable
         dict_ = {
             "set_line_status": line_status,
-            "set_bus": 1 * topo_vect,
+            "set_bus": topo_vect.copy(),
             "injection": {
-                "prod_p": prod_p,
-                "prod_v": prod_v,
-                "load_p": load_p,
-                "load_q": load_q,
+                "prod_p": prod_p.copy(),
+                "prod_v": prod_v.copy(),
+                "load_p": load_p.copy(),
+                "load_q": load_q.copy(),
             },
         }
 
         if type(self).shunts_data_available:
-            p_s, q_s, sh_v, bus_s = self.shunt_info()
+            p_s, q_s, bus_s = self.get_shunt_setpoint()
             dict_["shunt"] = {"shunt_bus": bus_s}
             if (bus_s >= 1).sum():
-                sh_conn = bus_s > 0
-                p_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
-                q_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
-                p_s[bus_s == -1] = np.nan
-                q_s[bus_s == -1] = np.nan
                 dict_["shunt"]["shunt_p"] = p_s
                 dict_["shunt"]["shunt_q"] = q_s
 
@@ -2236,6 +2231,23 @@ class Backend(GridObjects, ABC):
         set_me.update(dict_)
         return set_me
 
+    def get_shunt_setpoint(self):
+        """INTERNAL
+        
+        Is called in "get_action_to_set" but also in "EnvPrevState.update_from_backend"
+        
+        This gives the proper input to provide to the shunt (in an action or a backend action) to have 
+        the right outcome.
+        """
+        p_s, q_s, sh_v, bus_s = self.shunt_info()
+        if (bus_s >= 1).any():
+            sh_conn = bus_s > 0
+            p_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
+            q_s[sh_conn] *= (self._sh_vnkv[sh_conn] / sh_v[sh_conn]) ** 2
+        p_s[bus_s == -1] = np.nan
+        q_s[bus_s == -1] = np.nan
+        return p_s, q_s, bus_s
+        
     def update_from_obs(self,
                         obs: "grid2op.Observation.CompleteObservation",
                         force_update: Optional[bool]=False) -> "_BackendAction":

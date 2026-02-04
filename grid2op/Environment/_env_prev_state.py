@@ -9,7 +9,6 @@
 import copy
 from typing import Dict, Literal, Optional, Tuple, Type, Union
 
-import attr
 import numpy as np
 from grid2op.Space import GridObjects
 import grid2op.Backend

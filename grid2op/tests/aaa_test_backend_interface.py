@@ -1904,5 +1904,24 @@ class AAATestBackendAPI(MakeBackend):
         assert np.abs(gen_p[0]) <= 1e-8, f"disconnected gen should have a p of 0, found {gen_p[0]} (AC)"
         assert np.abs(gen_q[0]) <= 1e-8, f"disconnected gen should have a q of 0, found {gen_q[0]} (AC)"
         assert np.abs(gen_v[0]) <= 1e-8, f"disconnected gen should have a voltage set to 0, found {gen_v[0]} (AC)"
-            
+        
+    def test_36_shvnkv_present_if_shunt_supported(self):
+        """
+        .. versionadded: 1.12.3
+        
+        Check that the backend._sh_vnkv is set (not None) if the backend supports shunts.
+        
+        It is a requirement from grid2op version 1.12.3
+        """
+        self.skip_if_needed()
+        backend = self.aux_make_backend(allow_detachment=True)
+        cls = type(backend)
+        if not cls.shunts_data_available:
+            self.skipTest("This test cannot be performed as your backend does not support shunts")
+        
+        sh_vnkv = backend._sh_vnkv
+        assert sh_vnkv is not None, "If your backend supports shunts, then you need to implement `_sh_vnkv` attribute in the load_grid method of the backend"
+        assert isinstance(sh_vnkv, np.ndarray), "`_sh_vnkv` attribute should be a numpy array"
+        assert sh_vnkv.shape[0] == cls.n_shunt, f"_sh_vnkv has len {sh_vnkv.shape[0]} but there are {cls.n_shunt} n shunts on the grid"
+
     # TODO test: disconnect a gen a load a conso and then connect it again and see what you end up with.

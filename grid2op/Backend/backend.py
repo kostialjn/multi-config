@@ -155,9 +155,10 @@ class Backend(GridObjects, ABC):
         # thermal limit setting, in ampere, at the same "side" of the powerline than self.get_line_overflow
         self.thermal_limit_a : Optional[np.ndarray] = None
 
-        # for the shunt (only if supported)
-        self._sh_vnkv : Optional[np.ndarray]= None  # for each shunt gives the nominal value at the bus at which it is connected
-        # if this information is not present, then "get_action_to_set" might not behave correctly
+        #: for the shunt (only if supported)
+        #: for each shunt gives the nominal voltage value at the substation at which it is connected
+        #: if this information is not present, then "get_action_to_set" might not behave correctly
+        self._sh_vnkv : Optional[np.ndarray] = None  
 
         self.comp_time : float = 0.0
         self.can_output_theta : bool = False

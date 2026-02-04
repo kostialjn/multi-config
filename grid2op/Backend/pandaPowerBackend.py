@@ -1241,8 +1241,7 @@ class PandaPowerBackend(Backend):
             self._get_line_status()
             self._get_topo_vect()
             self._aux_runpf_pp(is_dc)
-            
-            cls = type(self)     
+              
             # if a connected bus has a no voltage, it's a divergence (grid was not connected)
             if self._grid.res_bus.loc[self._grid.bus["in_service"]]["va_degree"].isnull().any():
                 buses_ko = self._grid.res_bus.loc[self._grid.bus["in_service"]]["va_degree"].isnull()

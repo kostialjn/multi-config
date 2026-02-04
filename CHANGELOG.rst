@@ -100,7 +100,7 @@ Native multi agents support:
 - add detachment
 - add change_bus / set_bus
 
-[1.12.3]
+[1.12.3] - 2026-02-04
 -----------------------
 - [FIXED] the warnings when building the documentation.
 - [FIXED] the deprecation warnings when importing grid2op 
@@ -110,7 +110,9 @@ Native multi agents support:
   did not know on which bus to reconnect them when only the "reconnect" bus was given.
 - [FIXED] an issue leading to wrong setpoint values for shunt_p and shunt_q in the previous
   stored state (EnvPreviousState)
-- [IMPROVED] code for AAA backend tests
+- [ADDED] a test (in the AAA test) to assess that the backend._sh_vnkv is properly set if the shunts are
+  handled by the backend.
+- [IMPROVED] code for AAA backend tests (avoid equality check for float)
 - [IMPROVED] doc when loading grid with disconnected elements
 
 [1.12.2] - 2025-11-18

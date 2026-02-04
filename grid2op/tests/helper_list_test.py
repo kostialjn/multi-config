@@ -2,7 +2,7 @@
 import unittest
 li_tested_elsewhere = [
     # agent (approx 1 min)
-    "test_Agent", "test_AgentFast", "test_recopowerlineperarea"
+    "test_Agent", "test_AgentsFast", "test_recopowerlineperarea"
     # converter (approx 45s)
     "test_AgentConverter", "test_Converter", "test_BackendConverter",
     # Runner / EpisodeData / "score (3 mins)"
@@ -15,7 +15,6 @@ li_tested_elsewhere = [
     "test_score_idf_2023",
     "test_score_wcci_2022",
     "test_AlarmScore",
-    "test_alert_trust_score",
     "test_RewardAlertCostScore",
     "test_RewardNewRenewableSourcesUsageScore",
     "test_utils",

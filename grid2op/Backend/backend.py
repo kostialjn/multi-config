@@ -2112,7 +2112,7 @@ class Backend(GridObjects, ABC):
                 f' for {sto_nm} and column "discharging_efficiency"',
             )
 
-    def _aux_check_finite_float(self, nb_ : float, str_ : Optional[str]="") -> None:
+    def _aux_check_finite_float(self, nb_ : float, str_ : Optional[str]="") -> dt_float:
         """
         INTERNAL
 

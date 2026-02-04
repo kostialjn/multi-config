@@ -110,6 +110,7 @@ Native multi agents support:
   did not know on which bus to reconnect them when only the "reconnect" bus was given.
 - [FIXED] an issue leading to wrong setpoint values for shunt_p and shunt_q in the previous
   stored state (EnvPreviousState)
+- [FIXED] a wrong type hints in `_aux_check_finite_float` of Backend (in Backend.py)
 - [ADDED] a test (in the AAA test) to assess that the backend._sh_vnkv is properly set if the shunts are
   handled by the backend.
 - [IMPROVED] code for AAA backend tests (avoid equality check for float)

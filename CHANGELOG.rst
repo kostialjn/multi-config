@@ -100,6 +100,10 @@ Native multi agents support:
 - add detachment
 - add change_bus / set_bus
 
+
+[1.12.4] - 2026
+----------------
+
 [1.12.3] - 2026-02-04
 -----------------------
 - [FIXED] the warnings when building the documentation.
